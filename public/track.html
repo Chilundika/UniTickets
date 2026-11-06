@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Helpdesk – Track a ticket</title>
+<meta name="theme-color" content="#0b5394">
+<link rel="stylesheet" href="/styles.css">
+<script src="/common.js" defer></script>
+<script src="/track.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <h1>University IT Helpdesk</h1>
+  <a href="/report.html">Report an issue</a>
+  <button id="theme" class="link" type="button" aria-label="Switch light or dark mode">Theme</button>
+</header>
+<main id="main">
+  <form id="find" class="card" novalidate>
+    <h2>Track your ticket</h2>
+    <p class="muted">Only tickets where you gave consent can be tracked.</p>
+    <label for="number">Ticket number</label>
+    <input id="number" type="text" autocomplete="off" maxlength="8" placeholder="e.g. B07" required>
+    <label for="requesterNo">Student / Staff number</label>
+    <input id="requesterNo" type="text" autocomplete="off" maxlength="20" required>
+    <p class="error" id="find-err" aria-live="polite"></p>
+    <div class="actions end"><button type="submit">Check status</button></div>
+  </form>
+
+  <section id="result" class="card hidden" aria-live="polite">
+    <h2 id="r-title" tabindex="-1"></h2>
+    <p><span class="chip" id="r-status"></span> <span class="muted" id="r-meta"></span></p>
+    <h3>History</h3>
+    <ul class="events" id="r-events"></ul>
+
+    <form id="rate" class="hidden" novalidate>
+      <h3>How did we do?</h3>
+      <fieldset>
+        <legend>Rate the service (1 = poor, 5 = excellent)</legend>
+        <div id="stars"></div>
+      </fieldset>
+      <label for="comment">Comment (optional)</label>
+      <textarea id="comment" maxlength="500" class="short-ta"></textarea>
+      <p class="error" id="rate-err" aria-live="polite"></p>
+      <div class="actions end"><button type="submit">Send rating</button></div>
+    </form>
+
+    <form id="reopen" class="hidden" novalidate>
+      <h3>Problem came back?</h3>
+      <p class="muted">You can reopen this ticket within 7 days of it being resolved.</p>
+      <label for="reopen-reason">What happened?</label>
+      <textarea id="reopen-reason" maxlength="500" class="short-ta"></textarea>
+      <p class="error" id="reopen-err" aria-live="polite"></p>
+      <div class="actions end"><button type="submit" class="secondary">Reopen ticket</button></div>
+    </form>
+  </section>
+</main>
+</body>
+</html>

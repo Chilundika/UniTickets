@@ -1,0 +1,35 @@
+# Nightly database backup to a PRIVATE Cloudflare R2 bucket (separate from the uploads bucket).
+# Set these in GitHub: Settings > Secrets and variables > Actions:
+#   DATABASE_URL_DIRECT  Neon connection string WITHOUT "-pooler" (pg_dump needs a direct connection)
+#   R2_ACCOUNT_ID, R2_BACKUP_ACCESS_KEY_ID, R2_BACKUP_SECRET_ACCESS_KEY, R2_BACKUP_BUCKET
+# In R2, add a lifecycle rule on the backup bucket to delete objects after 30 days.
+name: Nightly database backup
+on:
+  schedule:
+    - cron: '30 22 * * *' # 00:30 Lusaka time
+  workflow_dispatch: {}   # lets you run it by hand from the Actions tab
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Dump database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
+        # Run pg_dump from the official Postgres 17 image so its version matches Neon's.
+        run: docker run --rm -e DATABASE_URL postgres:17 sh -c 'pg_dump "$DATABASE_URL" --format=custom --no-owner' > helpdesk.dump
+
+      - name: Check the dump is not empty
+        run: test "$(stat -c %s helpdesk.dump)" -gt 1000
+
+      - name: Upload to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: >
+          aws s3 cp helpdesk.dump "s3://${{ secrets.R2_BACKUP_BUCKET }}/helpdesk-$(date -u +%F).dump"
+          --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"

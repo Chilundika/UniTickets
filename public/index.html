@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Helpdesk – Scan to report an issue</title>
+<meta name="theme-color" content="#0b5394">
+<link rel="stylesheet" href="/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+<script src="/common.js" defer></script>
+<script src="/qr-home.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <h1>University IT Helpdesk</h1>
+  <a href="/track.html">Track a ticket</a>
+  <button id="theme" class="link" type="button" aria-label="Switch light or dark mode">Theme</button>
+</header>
+
+<main id="main">
+  <section class="card qr-home">
+    <h2>Need IT help?</h2>
+    <p class="lead">Scan this QR code with your phone camera to report an issue.</p>
+    <div id="qr" role="img" aria-label="QR code that opens the IT Helpdesk issue form"></div>
+    <p class="muted" id="qr-location"></p>
+    <ol class="how">
+      <li>Scan the code</li>
+      <li>Enter your details</li>
+      <li>Describe the issue</li>
+      <li>Get your ticket number</li>
+    </ol>
+    <div class="actions center">
+      <a class="btn" id="report-link" href="/report.html">Already on your phone? Tap here</a>
+      <button type="button" class="secondary no-print" id="print">Print poster</button>
+    </div>
+    <p class="muted small-url" id="qr-url"></p>
+  </section>
+</main>
+</body>
+</html>

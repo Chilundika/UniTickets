@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Helpdesk – Report an issue</title>
+<meta name="theme-color" content="#0b5394">
+<link rel="stylesheet" href="/styles.css">
+<script src="/common.js" defer></script>
+<script src="/intake.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <h1>University IT Helpdesk</h1>
+  <a href="/">Home</a>
+  <a href="/track.html">Track a ticket</a>
+  <button id="theme" class="link" type="button" aria-label="Switch light or dark mode">Theme</button>
+</header>
+
+<main id="main">
+  <details class="card" id="kb">
+    <summary>Try a quick fix first</summary>
+    <label for="kb-q">Search common problems</label>
+    <input id="kb-q" type="text" autocomplete="off" placeholder="e.g. password, Wi-Fi, email">
+    <div id="kb-results" aria-live="polite"></div>
+  </details>
+
+  <ol class="steps" aria-label="Progress">
+    <li data-step="1" aria-current="step">1. Details</li>
+    <li data-step="2">2. Issue</li>
+    <li data-step="3">3. Ticket</li>
+  </ol>
+
+  <!-- STEP 1: DETAILS -->
+  <form id="step1" class="card" novalidate>
+    <h2 tabindex="-1">Your details</h2>
+    <p class="muted">All fields are required.</p>
+
+    <label for="requesterNo">Student / Staff number</label>
+    <input id="requesterNo" name="requesterNo" type="text" autocomplete="off" required maxlength="20" aria-describedby="requesterNo-err">
+    <p class="error" id="requesterNo-err" aria-live="polite"></p>
+
+    <label for="email">Active email address</label>
+    <input id="email" name="email" type="email" autocomplete="email" required maxlength="120" aria-describedby="email-err">
+    <p class="error" id="email-err" aria-live="polite"></p>
+
+    <label for="phone">Active contact number (WhatsApp / calls)</label>
+    <input id="phone" name="phone" type="tel" autocomplete="tel" required maxlength="20" placeholder="+260971234567" aria-describedby="phone-hint phone-err">
+    <p class="hint" id="phone-hint">International format, starting with + and the country code.</p>
+    <p class="error" id="phone-err" aria-live="polite"></p>
+
+    <fieldset>
+      <legend>Do you consent to the collection of the above details for records and issue tracking?</legend>
+      <label class="choice"><input type="radio" name="consent" value="yes"> YES</label>
+      <label class="choice"><input type="radio" name="consent" value="no"> NO</label>
+      <div id="reason-box" class="hidden">
+        <label for="reason">We will not be able to track your current case. Please provide your reason for choosing this option.</label>
+        <textarea id="reason" name="reason" maxlength="300" rows="3" class="short-ta" aria-describedby="reason-count reason-err"></textarea>
+        <p class="counter" id="reason-count">0 / 300 characters (1–3 sentences)</p>
+        <p class="error" id="reason-err" aria-live="polite"></p>
+        <p class="notice warn">Your ticket will still be created, but marked “Untracked”. Your details above will not be stored and we will not contact you.</p>
+      </div>
+    </fieldset>
+
+    <details class="muted mt">
+      <summary>Privacy notice</summary>
+      <p>We collect your student/staff number, email and phone number only to record and follow up your IT issue, under Zambia’s Data Protection Act No. 3 of 2021 and the university data policy. Only IT Helpdesk staff can see them. Departments we refer your issue to see only the ticket number and a description of the problem. Contact details are deleted <span id="retention">2 years</span> after your ticket is resolved. You can ask the IT office to see or correct your data.</p>
+    </details>
+
+    <div class="actions end"><button id="proceed1" type="submit" disabled>PROCEED</button></div>
+  </form>
+
+  <!-- STEP 2: ISSUE -->
+  <form id="step2" class="card hidden" novalidate>
+    <h2 tabindex="-1">Describe your issue</h2>
+
+    <label for="category">Category (optional)</label>
+    <select id="category" name="category"><option value="">Choose…</option></select>
+
+    <label for="issue">What is the problem?</label>
+    <textarea id="issue" name="issue" maxlength="10000" rows="10" required aria-describedby="issue-count issue-err"></textarea>
+    <p class="counter" id="issue-count" aria-live="off">0 words</p>
+    <p class="error" id="issue-err" aria-live="polite"></p>
+
+    <div id="file-box" class="hidden">
+      <label for="file">Screenshot or file (optional)</label>
+      <input id="file" type="file" accept="image/png,image/jpeg,application/pdf" aria-describedby="file-hint file-err">
+      <p class="hint" id="file-hint">PNG, JPG or PDF, up to 2 MB.</p>
+    </div>
+    <p class="error" id="file-err" aria-live="polite"></p>
+
+    <!-- Cloudflare Turnstile when configured, otherwise a simple arithmetic question. -->
+    <div id="turnstile-box" class="hidden">
+      <p class="hint">Security check</p>
+      <div id="turnstile"></div>
+    </div>
+    <div id="math-box" class="hidden">
+      <label for="captcha">Security check: <span id="captcha-q">loading…</span></label>
+      <input id="captcha" type="text" inputmode="numeric" autocomplete="off" maxlength="3" aria-describedby="captcha-err" class="short">
+    </div>
+    <p class="error" id="captcha-err" aria-live="polite"></p>
+    <!-- Honeypot: hidden from people and screen readers; bots tend to fill it. -->
+    <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+
+    <p class="error" id="submit-err" aria-live="assertive"></p>
+    <div class="actions">
+      <button type="button" class="secondary" id="back2">Back</button>
+      <button id="proceed2" type="submit" disabled class="push">PROCEED</button>
+    </div>
+  </form>
+
+  <!-- STEP 3: TICKET -->
+  <section id="step3" class="card hidden" aria-live="polite">
+    <h2 tabindex="-1">Ticket created</h2>
+    <p>Thank you. Your issue has been logged.</p>
+    <p class="ticket-no" id="ticket-no"></p>
+    <p id="ticket-msg" class="notice ok"></p>
+    <div class="actions"><a class="btn secondary" href="/track.html" id="track-link">Track this ticket</a><button type="button" id="new-ticket">Report another issue</button></div>
+  </section>
+</main>
+</body>
+</html>

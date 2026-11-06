@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>IT Helpdesk – Staff</title>
+<link rel="stylesheet" href="/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+<script src="/common.js" defer></script>
+<script src="/staff.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <h1>IT Helpdesk – Staff</h1>
+  <span class="clock" id="clock" aria-label="Current date and time, Lusaka"></span>
+  <span id="whoami" class="hidden"></span>
+  <button id="bell" class="link bell hidden" type="button" aria-expanded="false" aria-controls="notifs">Alerts <span class="count hidden" id="bell-count"></span></button>
+  <button id="theme" class="link" type="button" aria-label="Switch light or dark mode">Theme</button>
+  <button id="logout" class="link hidden" type="button">Sign out</button>
+</header>
+
+<div id="notifs" class="card notif-panel hidden" role="region" aria-label="Notifications"></div>
+
+<main id="main" class="wide">
+  <!-- Sign in -->
+  <form id="login" class="card hidden" novalidate>
+    <h2>Sign in</h2>
+    <label for="username">IT ID</label>
+    <input id="username" type="text" autocomplete="username" placeholder="IT-CU411" maxlength="30" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <div id="totp-setup" class="hidden">
+      <p class="notice">Admins must use two-factor authentication. Scan this code with an authenticator app (Google or Microsoft Authenticator), or type the key, then enter the 6-digit code.</p>
+      <div id="qr-2fa"></div>
+      <p>Key: <code id="totp-secret"></code></p>
+    </div>
+    <div id="code-box" class="hidden">
+      <label for="code">6-digit authentication code</label>
+      <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="short">
+    </div>
+    <p class="error" id="login-err" aria-live="polite"></p>
+    <div class="actions end"><button type="submit">Sign in</button></div>
+  </form>
+
+  <!-- Forced password change -->
+  <form id="changepw" class="card hidden" novalidate>
+    <h2>Choose a new password</h2>
+    <label for="cur-pw">Current (temporary) password</label>
+    <input id="cur-pw" type="password" autocomplete="current-password">
+    <label for="new-pw">New password (at least 10 characters)</label>
+    <input id="new-pw" type="password" autocomplete="new-password" minlength="10">
+    <p class="error" id="pw-err" aria-live="polite"></p>
+    <div class="actions end"><button type="submit">Save password</button></div>
+  </form>
+
+  <!-- App -->
+  <div id="app" class="hidden">
+    <section class="stats" aria-label="Today">
+      <div class="stat"><b id="s-received">–</b><span>Received today</span></div>
+      <div class="stat"><b id="s-completed">–</b><span>Completed today</span></div>
+      <div class="stat"><b id="s-pending">–</b><span>Pending (open)</span></div>
+      <div class="stat"><b id="s-escalation">–</b><span>Needs escalation</span></div>
+      <div class="stat"><b id="s-referred">–</b><span>Referred (non-IT)</span></div>
+    </section>
+
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="tickets" aria-selected="true">Tickets</button>
+      <button role="tab" data-tab="mine">My dashboard</button>
+      <button role="tab" data-tab="links">Referral links</button>
+      <button role="tab" data-tab="reports" data-admin>Reports</button>
+      <button role="tab" data-tab="users" data-admin>Users</button>
+      <button role="tab" data-tab="settings" data-admin>Settings</button>
+      <button role="tab" data-tab="qr" data-admin>QR codes</button>
+      <button role="tab" data-tab="audit" data-admin>Audit log</button>
+    </nav>
+
+    <section data-panel="tickets" role="tabpanel">
+      <form id="filters" class="card filters">
+        <div><label for="f-from">From</label><input id="f-from" type="date"></div>
+        <div><label for="f-to">To</label><input id="f-to" type="date"></div>
+        <div><label for="f-status">Status</label><select id="f-status"><option value="">All</option></select></div>
+        <div><label for="f-category">Category</label><select id="f-category"><option value="">All</option></select></div>
+        <div><label for="f-priority">Priority</label><select id="f-priority"><option value="">All</option></select></div>
+        <div><label for="f-department">Department</label><select id="f-department"><option value="">All</option></select></div>
+        <div><label for="f-assignee">IT user</label><select id="f-assignee"><option value="">All</option><option value="me">Me</option><option value="none">Unassigned</option></select></div>
+        <div><label for="f-q">Search</label><input id="f-q" type="text" placeholder="B07, text, student no."></div>
+      </form>
+      <div class="card table-wrap"><table>
+        <thead><tr><th>Ticket</th><th>Status</th><th>Priority / SLA</th><th>Category</th><th>Summary</th><th>Assigned</th><th>Created</th></tr></thead>
+        <tbody id="t-body"></tbody>
+      </table></div>
+    </section>
+
+    <section data-panel="mine" role="tabpanel" class="hidden">
+      <div class="stats" id="my-stats"></div>
+      <div class="card table-wrap"><h2>Assigned to me (open)</h2><table><tbody id="my-body"></tbody></table></div>
+    </section>
+
+    <section data-panel="links" role="tabpanel" class="hidden">
+      <div class="card table-wrap"><table>
+        <thead><tr><th>Department / Surname</th><th>Issues</th><th>Expires</th><th>State</th><th>Actions</th></tr></thead>
+        <tbody id="l-body"></tbody>
+      </table></div>
+    </section>
+
+    <section data-panel="reports" role="tabpanel" class="hidden">
+      <form id="r-form" class="card filters">
+        <div><label for="r-from">From</label><input id="r-from" type="date"></div>
+        <div><label for="r-to">To</label><input id="r-to" type="date"></div>
+        <div class="actions"><button type="submit">Show</button><button type="button" class="secondary" id="r-csv">Excel (CSV)</button><button type="button" class="secondary" id="r-print">PDF / Print</button></div>
+      </form>
+      <div id="r-out"></div>
+    </section>
+
+    <section data-panel="users" role="tabpanel" class="hidden">
+      <form id="u-form" class="card filters">
+        <div><label for="u-id">Staff ID</label><input id="u-id" type="text" placeholder="CU411" maxlength="20"></div>
+        <div><label for="u-name">Full name</label><input id="u-name" type="text" maxlength="80"></div>
+        <div><label for="u-email">Email</label><input id="u-email" type="email" maxlength="120"></div>
+        <div><label for="u-role">Role</label><select id="u-role"><option value="it">IT user</option><option value="admin">SUDO admin</option></select></div>
+        <div class="actions"><button type="submit">Add user</button></div>
+        <p id="u-msg" aria-live="polite"></p>
+      </form>
+      <div class="card table-wrap"><table>
+        <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>2FA</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="u-body"></tbody>
+      </table></div>
+    </section>
+
+    <section data-panel="settings" role="tabpanel" class="hidden">
+      <form id="set-form" class="card">
+        <div class="grid2">
+          <div><label for="set-remind">Reminder to IT user after (working days)</label><input id="set-remind" type="number" min="1" max="20"></div>
+          <div><label for="set-escalate">Escalate to admin after (working days)</label><input id="set-escalate" type="number" min="1" max="20"></div>
+          <div><label for="set-link">Referral link valid for (working days)</label><input id="set-link" type="number" min="1" max="20"></div>
+          <div><label for="set-wide">Widespread alert threshold (tickets in 2 h)</label><input id="set-wide" type="number" min="2" max="100"></div>
+          <div><label for="set-retention">Keep contact details for (days after resolution)</label><input id="set-retention" type="number" min="30"></div>
+          <div><label for="set-sla">SLA hours (Urgent, High, Medium, Low)</label><input id="set-sla" type="text" placeholder="4, 8, 24, 72"></div>
+        </div>
+        <label for="set-holidays">Public holidays (one YYYY-MM-DD per line)</label>
+        <textarea id="set-holidays" class="short-ta"></textarea>
+        <label for="set-categories">Issue categories (one per line, must include Other)</label>
+        <textarea id="set-categories" class="short-ta"></textarea>
+        <label for="set-canned">Canned replies (one per line)</label>
+        <textarea id="set-canned" class="short-ta"></textarea>
+        <label for="set-depts">Departments (one per line: CODE | Name | email)</label>
+        <textarea id="set-depts" class="short-ta"></textarea>
+        <p class="hint">To retire a department, add “| off” at the end of its line.</p>
+        <p id="set-msg" aria-live="polite"></p>
+        <div class="actions end"><button type="submit">Save settings</button></div>
+      </form>
+      <form id="kb-form" class="card">
+        <h2>Knowledge base</h2>
+        <input type="hidden" id="kb-id">
+        <label for="kb-title">Title</label><input id="kb-title" type="text" maxlength="120">
+        <label for="kb-body">Text</label><textarea id="kb-body" class="short-ta" maxlength="4000"></textarea>
+        <div class="actions"><button type="submit">Save article</button><button type="button" class="secondary" id="kb-clear">New</button></div>
+        <div id="kb-list"></div>
+      </form>
+    </section>
+
+    <section data-panel="qr" role="tabpanel" class="hidden">
+      <form id="qr-form" class="card">
+        <h2>Print a QR code</h2>
+        <label for="qr-loc">Location tag (optional), e.g. Library, Block A</label>
+        <input id="qr-loc" type="text" maxlength="60">
+        <div class="actions"><button type="submit">Generate</button><button type="button" class="secondary" id="qr-print">Print</button></div>
+        <div id="qr-out" class="mt"><div id="qr"></div><p id="qr-url" class="muted"></p></div>
+      </form>
+    </section>
+
+    <section data-panel="audit" role="tabpanel" class="hidden">
+      <div class="card table-wrap"><table>
+        <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Details</th><th>IP</th></tr></thead>
+        <tbody id="a-body"></tbody>
+      </table></div>
+    </section>
+  </div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg-head"><h2 id="dlg-title">Ticket</h2><button type="button" class="secondary small" id="dlg-close">Close</button></div>
+  <div class="dlg-body" id="dlg-body"></div>
+</dialog>
+</body>
+</html>
